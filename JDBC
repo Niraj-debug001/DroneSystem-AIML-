@@ -1,0 +1,33 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+
+public class DBInsertExample {
+    public static void main(String[] args) {
+        String url = "jdbc:postgresql://localhost:5432/drone_db";
+        String user = "drone_user";
+        String password = "secret";
+
+        String sql = "INSERT INTO detections (drone_id, timestamp, class, confidence, x_min, y_min, x_max, y_max, frame_id) "
+                   + "VALUES (?, now(), ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "drone-01");
+            stmt.setString(2, "person");
+            stmt.setFloat(3, 0.92f);
+            stmt.setFloat(4, 0.1f);
+            stmt.setFloat(5, 0.2f);
+            stmt.setFloat(6, 0.3f);
+            stmt.setFloat(7, 0.4f);
+            stmt.setString(8, "frame_123");
+
+            int rows = stmt.executeUpdate();
+            System.out.println("✅ Rows inserted: " + rows);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
