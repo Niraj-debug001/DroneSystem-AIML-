@@ -1,0 +1,37 @@
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+# --- DB CONNECTION ---
+def get_connection():
+    return psycopg2.connect(
+        host="localhost",      # or your DB host
+        port="5432",
+        dbname="drone_db",
+        user="drone_user",
+        password="secret",
+        cursor_factory=RealDictCursor
+    )
+
+# --- INSERT DATA ---
+def insert_detection(drone_id, class_name, confidence, x_min, y_min, x_max, y_max):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            query = """
+                INSERT INTO detections
+                (drone_id, timestamp, class, confidence, x_min, y_min, x_max, y_max, frame_id)
+                VALUES (%s, now(), %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """
+            cur.execute(query, (drone_id, class_name, confidence, x_min, y_min, x_max, y_max, "frame_123"))
+            detection_id = cur.fetchone()["id"]
+            conn.commit()
+            print(f"✅ Inserted detection ID {detection_id}")
+    except Exception as e:
+        print("❌ Error:", e)
+    finally:
+        conn.close()
+
+
+# Example usage
+insert_detection("drone-01", "person", 0.92, 0.1, 0.2, 0.3, 0.4)
